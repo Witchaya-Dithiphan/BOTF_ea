@@ -1,7 +1,7 @@
 import pandas as pd
 import ta
 
-def breakout_filter(df: pd.DataFrame, window: int = 20, window_dev: float = 2) -> pd.DataFrame:
+def breakout_signal(df: pd.DataFrame, window: int = 20, window_dev: float = 2) -> pd.DataFrame:
     data = df.copy()
     bb = ta.volatility.BollingerBands(data['close'], window=window, window_dev=window_dev)
     
