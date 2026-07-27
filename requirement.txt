@@ -1,0 +1,8 @@
+MetaTrader5
+ccxt
+pandas
+numpy
+ta
+backtesting
+python-dotenv
+pytest
