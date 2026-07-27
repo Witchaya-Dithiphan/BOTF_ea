@@ -15,19 +15,19 @@ def calculate_position_size(account_balance: float,risk_percent: float, sl_dista
 
     return lot_size
 
-if __name__ == "__main__":
-  balance = 300.0  # พอร์ต $300
-  risk = 0.03  # เสี่ยง 3% ($9)
-  sl_dist = 600.0  # ระยะ Stop Loss $300 (เช่น BTC)
-  contract = 1.0  # 1 Lot = 1 BTC
+# if __name__ == "__main__":
+#   balance = 300.0  # พอร์ต $300
+#   risk = 0.03  # เสี่ยง 3% ($9)
+#   sl_dist = 600.0  # ระยะ Stop Loss $300 (เช่น BTC)
+#   contract = 1.0  # 1 Lot = 1 BTC
 
-  lot = calculate_position_size(
-      account_balance=balance,
-      risk_percent=risk,
-      sl_distance=sl_dist,
-      contract_size=contract,
-  )
+#   lot = calculate_position_size(
+#       account_balance=balance,
+#       risk_percent=risk,
+#       sl_distance=sl_dist,
+#       contract_size=contract,
+#   )
 
-  print(f"Account Balance: ${balance}")
-  print(f"Risk Amount: ${balance * risk}")
-  print(f"Calculated Lot Size: {lot} Lots")
+#   print(f"Account Balance: ${balance}")
+#   print(f"Risk Amount: ${balance * risk}")
+#   print(f"Calculated Lot Size: {lot} Lots")
