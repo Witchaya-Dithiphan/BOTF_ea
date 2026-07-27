@@ -21,7 +21,7 @@ mt5.shutdown()
 
 df = pd.DataFrame(rates)
 df['time'] = pd.to_datetime(df['time'], unit='s')
-df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume','spread', 'real_volume']]
+df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume','spread']]
 df.rename(columns={'time': 'timestamp','tick_volume': 'volume'}, inplace = True)
 
 os.makedirs('data', exist_ok=True)
