@@ -26,7 +26,7 @@ df.rename(columns={'time': 'timestamp','tick_volume': 'volume'}, inplace = True)
 df['spread_usd'] = df['spread'] * 0.01
 
 os.makedirs('data', exist_ok=True)
-file_path = 'data/btcusd_h1_2years.csv'
+file_path = 'data/btcusd_h1_3years.csv'
 df.to_csv(file_path, index=False)
 
 print(f"Data fetched and saved to {file_path}")
