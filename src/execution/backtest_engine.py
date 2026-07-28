@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
+import random
+random.seed(42)
 
 root_dir = Path(__file__).resolve().parents[2]
 if str(root_dir) not in sys.path:
@@ -98,7 +100,7 @@ def run_backtest(
                 )
 
                 if lot > 0:
-                    entry_price = row.next_open + row.next_spread_usd
+                    entry_price = row.next_open + row.next_spread_usd + (row.atr*random.uniform(0.01,0.05))
                     sl_price = entry_price - row.sl_distance
                     tp_price = entry_price + (row.sl_distance * tp_ratio)
                     current_lot = lot
@@ -113,7 +115,7 @@ def run_backtest(
                 )
 
                 if lot > 0:
-                    entry_price = row.next_open
+                    entry_price = row.next_open - (row.atr*random.uniform(0.01,0.05))
                     sl_price = entry_price + row.sl_distance
                     tp_price = entry_price - (row.sl_distance * tp_ratio)
                     current_lot = lot
