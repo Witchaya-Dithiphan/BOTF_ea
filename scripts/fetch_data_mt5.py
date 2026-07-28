@@ -14,7 +14,7 @@ if not symbol_info.visible:
     mt5.symbol_info(symbol , True)
 
 time_now = datetime.now()
-time_start = time_now - timedelta(days=365*2)
+time_start = time_now - timedelta(days=365*3)
 
 rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, time_start, time_now)
 mt5.shutdown()
@@ -23,6 +23,7 @@ df = pd.DataFrame(rates)
 df['time'] = pd.to_datetime(df['time'], unit='s')
 df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume','spread']]
 df.rename(columns={'time': 'timestamp','tick_volume': 'volume'}, inplace = True)
+df['spread_usd'] = df['spread'] * 0.01
 
 os.makedirs('data', exist_ok=True)
 file_path = 'data/btcusd_h1_2years.csv'
