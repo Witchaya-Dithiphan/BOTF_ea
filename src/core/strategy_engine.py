@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-# ดึง Root Directory (BOTF_ea) เข้า sys.path
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 
@@ -27,5 +26,10 @@ def generate_signals(df: pd.DataFrame) -> pd.DataFrame:
     & (data['trend_signal'] == -1) 
     & (data['volume_signal'] == 1), 
     'entry_signal'] = -1
+
+    data["next_open"] = data["open"].shift(-1)
+    data["next_spread_usd"] = data["spread_usd"].shift(-1)
+
+    data = data.dropna().reset_index(drop=True)
 
     return data
