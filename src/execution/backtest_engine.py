@@ -27,6 +27,9 @@ def run_backtest(
 
     trades_history = []
 
+    df["next_open"] = df["open"].shift(-1)
+    df["next_spread_usd"] = df["spread_usd"].shift(-1)
+
     for index, row in df.iterrows():
         # --- 1. ถ้ามีออเดอร์ค้างอยู่ ให้เช็กว่าชน SL หรือ TP ในแท่งปัจจุบันไหม ---
         if position == "BUY":
@@ -96,7 +99,7 @@ def run_backtest(
                 position = None
 
         # --- 2. ถ้าไม่มีออเดอร์ค้างอยู่ (หรือเพิ่งปิดไป) ให้เช็กสัญญาณเข้าออเดอร์ใหม่ ---
-        if position is None:
+        elif position is None:
             if row["entry_signal"] == 1:
                 lot = calculate_position_size(
                     account_balance=balance,
@@ -107,7 +110,7 @@ def run_backtest(
 
                 # ออกออเดอร์เฉพาะเมื่อคำนวณ Lot ได้มากกว่า 0
                 if lot > 0:
-                    entry_price = row["close"]
+                    entry_price = row["next_open"] + row["next_spread_usd"]
                     sl_price = entry_price - row["sl_distance"]
                     tp_price = entry_price + (row["sl_distance"] * tp_ratio)
                     current_lot = lot
@@ -122,7 +125,7 @@ def run_backtest(
                 )
 
                 if lot > 0:
-                    entry_price = row["close"]
+                    entry_price = row["next_open"]
                     sl_price = entry_price + row["sl_distance"]
                     tp_price = entry_price - (row["sl_distance"] * tp_ratio)
                     current_lot = lot
