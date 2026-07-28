@@ -1,9 +1,11 @@
 import sys
 from pathlib import Path
-import random
-random.seed(42)
 
 root_dir = Path(__file__).resolve().parents[2]
+import config as cfg
+import random
+random.seed(cfg.RANDOM_SEED)
+
 if str(root_dir) not in sys.path:
     sys.path.append(str(root_dir))
 
@@ -13,10 +15,10 @@ from src.risk.position_sizer import calculate_position_size
 
 def run_backtest(
     df: pd.DataFrame,
-    initial_balance: float = 300.0,
-    risk_percent: float = 0.03,
-    tp_ratio: float = 2.0,
-    contract_size: float = 1.0,
+    initial_balance: float,
+    risk_percent: float,
+    tp_ratio: float,
+    contract_size: float,
 ) -> dict:
 
     balance = initial_balance
@@ -100,7 +102,7 @@ def run_backtest(
                 )
 
                 if lot > 0:
-                    entry_price = row.next_open + row.next_spread_usd + (row.atr*random.uniform(0.01,0.05))
+                    entry_price = row.next_open + row.next_spread_usd + (row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR))
                     sl_price = entry_price - row.sl_distance
                     tp_price = entry_price + (row.sl_distance * tp_ratio)
                     current_lot = lot
@@ -115,7 +117,7 @@ def run_backtest(
                 )
 
                 if lot > 0:
-                    entry_price = row.next_open - (row.atr*random.uniform(0.01,0.05))
+                    entry_price = row.next_open - (row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR))
                     sl_price = entry_price + row.sl_distance
                     tp_price = entry_price - (row.sl_distance * tp_ratio)
                     current_lot = lot

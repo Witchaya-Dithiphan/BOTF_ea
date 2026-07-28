@@ -4,6 +4,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import pandas as pd
+import config as cfg
 from src.execution.backtest_engine import run_backtest
 from src.core.strategy_engine import generate_signals  
 from src.risk.volatility_calc import calculate_volatility
@@ -18,16 +19,16 @@ def main():
 
     df = pd.read_csv(data_path)
 
-    df = calculate_volatility(df)
+    df = calculate_volatility(df,cfg.ATR_PERIOD,cfg.SL_ATR_MULTIPLIER)
     df = generate_signals(df)
 
-    initial_balance = 300.0
+    initial_balance = cfg.INITIAL_BALANCE
     result = run_backtest(
         df=df,
         initial_balance=initial_balance,
-        risk_percent=0.03,
-        tp_ratio=2.0,
-        contract_size=1.0,
+        risk_percent=cfg.RISK_PERCENT,
+        tp_ratio=cfg.TP_RATIO,
+        contract_size=cfg.CONTRACT_SIZE,
     )
 
     trades = result['trades']
