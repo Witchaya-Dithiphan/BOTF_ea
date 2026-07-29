@@ -11,7 +11,7 @@ config.py
 data/
 results/
 *.csv
-
+tempCodeRunnerFile.py
 # --------------------------------------------------
 # Python Cache & System Files (ไฟล์ระบบ Python)
 # --------------------------------------------------

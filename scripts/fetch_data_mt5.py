@@ -19,14 +19,20 @@ time_start = time_now - timedelta(days=365*3)
 rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, time_start, time_now)
 mt5.shutdown()
 
-df = pd.DataFrame(rates)
-df['time'] = pd.to_datetime(df['time'], unit='s')
-df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume','spread']]
-df.rename(columns={'time': 'timestamp','tick_volume': 'volume'}, inplace = True)
-df['spread_usd'] = df['spread'] * 0.01
+if rates is None or len(rates) == 0:
+    print("Failed to fetch rates or empty data returned.")
+else:
+    df = pd.DataFrame(rates)
 
-os.makedirs('data', exist_ok=True)
-file_path = 'data/btcusd_h1_3years.csv'
-df.to_csv(file_path, index=False)
+    df['time'] = pd.to_datetime(df['time'], unit='s') + pd.Timedelta(hours=7)
 
-print(f"Data fetched and saved to {file_path}")
+    df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume','spread']]
+    df.rename(columns={'time': 'timestamp','tick_volume': 'volume'}, inplace = True)
+    df['spread_usd'] = df['spread'] * 0.01
+
+
+    os.makedirs('data', exist_ok=True)
+    file_path = 'data/btcusd_h1_3years.csv'
+    df.to_csv(file_path, index=False)
+
+    print(f"Data fetched and saved to {file_path}")
