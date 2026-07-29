@@ -34,6 +34,7 @@ def main():
     trades = result['trades']
     total_trades = result['total_trades']
     final_balance = result['final_balance']
+    ambiguous_count = result['ambiguous_count']
     net_pnl = final_balance - initial_balance
     return_pct = (net_pnl / initial_balance) * 100
 
@@ -49,6 +50,7 @@ def main():
     print(f"Net Profit/Loss : ${net_pnl:,.2f} ({return_pct:+.2f}%)")
     print(f"Total Trades    : {total_trades} trades")
     print(f"Win Rate        : {win_rate:.2f}% ({win_count}/{total_trades})")
+    print(f"Ambiguous_count        : {ambiguous_count}")
     print("=" * 40)
 
     trades_df = pd.DataFrame(result['trades'])
