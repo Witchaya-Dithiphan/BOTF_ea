@@ -14,7 +14,7 @@ if not symbol_info.visible:
     mt5.symbol_info(symbol , True)
 
 time_now = datetime.now()
-time_start = time_now - timedelta(days=365*3)
+time_start = time_now - timedelta(days=365*4)
 
 rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, time_start, time_now)
 mt5.shutdown()
