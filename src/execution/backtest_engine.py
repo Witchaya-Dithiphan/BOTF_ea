@@ -27,11 +27,17 @@ def run_backtest(
     sl_price = 0.0
     tp_price = 0.0
     current_lot = 0.0
+    ambiguous_count = 0
 
     trades_history = []
 
     for row in df.itertuples():
         if position == "BUY":
+
+            both_hit = (row.low <= sl_price) and (row.high >= tp_price)
+            if both_hit:
+                ambiguous_count += 1
+
             if row.low <= sl_price:
                 pnl = (sl_price - entry_price) * current_lot * contract_size
                 balance += pnl
@@ -62,6 +68,11 @@ def run_backtest(
                 position = None
 
         elif position == "SELL":
+
+            both_hit = (row.high + row.spread_usd >= sl_price) and (row.low + row.spread_usd <= tp_price)
+            if both_hit:
+                ambiguous_count += 1
+
             if row.high + row.spread_usd>= sl_price:
                 pnl = (entry_price - sl_price) * current_lot * contract_size
                 balance += pnl
@@ -128,4 +139,5 @@ def run_backtest(
         "final_balance": balance,
         "total_trades": len(trades_history),
         "trades": trades_history,
+        "ambiguous_count": ambiguous_count
     }
