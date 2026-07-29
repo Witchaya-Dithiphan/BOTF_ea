@@ -8,7 +8,7 @@ RISK_PERCENT = 0.03          # ความเสี่ยงต่อไม้ 
 CONTRACT_SIZE = 1.0         # ขนาดสัญญา (เช่น 100 สำหรับ XAUUSD Standard Lot)
 
 # --- Strategy Parameters ---
-TP_RATIO = 2.0             # Risk to Reward Ratio (1:1.82)
+TP_RATIO = 2.2             # Risk to Reward Ratio (1:1.82)
 ATR_PERIOD = 14              # จำนวนแท่งสำหรับคำนวณ ATR
 SL_ATR_MULTIPLIER = 1.8
       # ระยะ SL คิดเป็นกี่เท่าของ ATR
@@ -28,11 +28,11 @@ SLIPPAGE_MAX_FACTOR = 0.05   # 8% ของ ATR
 RANDOM_SEED = 42
 
 # --- Position Management (สำหรับฟีเจอร์อนาคต) ---
-USE_TRAILING_STOP = False    # เปิด-ปิด Trailing Stop
-BE_TRIGGER_R = 1.2           # ระยะ R ที่จะเลื่อน SL มาบังทุน (Breakeven)
+USE_TRAILING_STOP = False         # เปิด-ปิด Trailing Stop
+BE_TRIGGER_R = 2.0           # ระยะ R ที่จะเลื่อน SL มาบังทุน (Breakeven)
 
 # --- SESSION & TIME FILTERS ---
-ENABLE_TIME_FILTER = True
+ENABLE_TIME_FILTER = False
 TRADING_START_HOUR = 13      # ช่วงบ่ายเริ่มมี Volume (บ่ายสอง/บ่ายสาม)
 TRADING_END_HOUR = 23        # สี่ทุ่ม-ห้าทุ่ม (จบช่วง US peak)
 

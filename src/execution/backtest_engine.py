@@ -12,6 +12,7 @@ if str(root_dir) not in sys.path:
 import pandas as pd
 from src.risk.position_sizer import calculate_position_size
 from src.signals.session_filter import is_valid_session
+from src.risk.break_even_trailing import trailing_sl
 
 
 def run_backtest(
@@ -29,12 +30,13 @@ def run_backtest(
     tp_price = 0.0
     current_lot = 0.0
     ambiguous_count = 0
+    sl_dist = 0.0
 
     trades_history = []
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     for row in df.itertuples():
-        if position == "BUY":
 
+        if position == "BUY":
             both_hit = (row.low <= sl_price) and (row.high >= tp_price)
             if both_hit:
                 ambiguous_count += 1
@@ -67,6 +69,17 @@ def run_backtest(
                     }
                 )
                 position = None
+            
+            if position is not None and cfg.USE_TRAILING_STOP:
+                sl_price = trailing_sl(
+                    position_type=position,  # ส่งค่า "SELL" เข้าไป
+                    entry_price=entry_price,
+                    current_sl=sl_price,
+                    current_high=row.high,
+                    current_low=row.low,
+                    initial_sl_distance=sl_dist,
+                    be_trigger_r=cfg.BE_TRIGGER_R
+                )
 
         elif position == "SELL":
 
@@ -104,10 +117,21 @@ def run_backtest(
                 )
                 position = None
 
-        elif position is None:
+            if position is not None and cfg.USE_TRAILING_STOP:
+                sl_price = trailing_sl(
+                    position_type=position,  # ส่งค่า "SELL" เข้าไป
+                    entry_price=entry_price,
+                    current_sl=sl_price,
+                    current_high=row.high,
+                    current_low=row.low,
+                    initial_sl_distance=sl_dist,
+                    be_trigger_r=cfg.BE_TRIGGER_R
+                )
 
-            # if not is_valid_session(row.timestamp + pd.Timedelta(hours=1), row.next_spread_usd):
-            #     continue
+        elif position is None:
+            if cfg.ENABLE_TIME_FILTER:
+                if not is_valid_session(row.timestamp + pd.Timedelta(hours=1), row.next_spread_usd):
+                    continue
 
             if row.entry_signal == 1:
                 lot = calculate_position_size(
@@ -118,6 +142,7 @@ def run_backtest(
                 )
 
                 if lot > 0:
+                    sl_dist = row.sl_distance
                     entry_price = row.next_open + row.next_spread_usd + (row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR))
                     sl_price = entry_price - row.sl_distance
                     tp_price = entry_price + (row.sl_distance * tp_ratio)
@@ -133,6 +158,7 @@ def run_backtest(
                 )
 
                 if lot > 0:
+                    sl_dist = row.sl_distance
                     entry_price = row.next_open - (row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR))
                     sl_price = entry_price + row.sl_distance
                     tp_price = entry_price - (row.sl_distance * tp_ratio)
