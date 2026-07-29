@@ -11,6 +11,7 @@ if str(root_dir) not in sys.path:
 
 import pandas as pd
 from src.risk.position_sizer import calculate_position_size
+from src.signals.session_filter import is_valid_session
 
 
 def run_backtest(
@@ -30,7 +31,7 @@ def run_backtest(
     ambiguous_count = 0
 
     trades_history = []
-
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
     for row in df.itertuples():
         if position == "BUY":
 
@@ -104,6 +105,10 @@ def run_backtest(
                 position = None
 
         elif position is None:
+
+            # if not is_valid_session(row.timestamp + pd.Timedelta(hours=1), row.next_spread_usd):
+            #     continue
+
             if row.entry_signal == 1:
                 lot = calculate_position_size(
                     account_balance=balance,
