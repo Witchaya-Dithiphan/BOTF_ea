@@ -28,9 +28,6 @@ def generate_signals(df: pd.DataFrame) -> pd.DataFrame:
     & (data['volume_signal'] == 1), 
     'entry_signal'] = -1
 
-    data["next_open"] = data["open"].shift(-1)
-    data["next_spread_usd"] = data["spread_usd"].shift(-1)
-
     data = data.dropna().reset_index(drop=True)
 
     return data

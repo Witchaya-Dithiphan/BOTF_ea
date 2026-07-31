@@ -12,19 +12,22 @@ from src.risk.volatility_calc import calculate_volatility
 
 def main():
 
-    data_path = Path("data/btcusd_h1_3years.csv")
-    if not data_path.exists():
+    h1_path = Path("data/btcusd_h1.csv")
+    m1_path = Path("data/btcusd_m1.csv")
+    if not (h1_path.exists() or m1_path.exists()):
         print(f"Error: Not found data in path: {data_path}")
         return
 
-    df = pd.read_csv(data_path)
+    df_h1 = pd.read_csv(h1_path)
+    df_m1 = pd.read_csv(m1_path)
 
-    df = calculate_volatility(df,cfg.ATR_PERIOD,cfg.SL_ATR_MULTIPLIER)
-    df = generate_signals(df)
+    df_h1 = calculate_volatility(df_h1,cfg.ATR_PERIOD,cfg.SL_ATR_MULTIPLIER)
+    df_h1 = generate_signals(df_h1)
 
     initial_balance = cfg.INITIAL_BALANCE
     result = run_backtest(
-        df=df,
+        df_h1=df_h1,
+        df_m1=df_m1,
         initial_balance=initial_balance,
         risk_percent=cfg.RISK_PERCENT,
         tp_ratio=cfg.TP_RATIO,
@@ -57,13 +60,6 @@ def main():
 
     print("\n--- Breakdown by Result ---")
     print(trades_df.groupby(['type', 'result'])['pnl'].agg(['count', 'sum', 'mean']))
-
-    # print("\n--- First 10 Trades ---")
-    # print(
-    #     trades_df[
-    #         ['type', 'result', 'entry', 'exit', 'pnl', 'balance']
-    #     ].head(30)
-    # )
 
 if __name__ == "__main__":
   main()
