@@ -16,7 +16,8 @@ from src.risk.break_even_trailing import trailing_sl
 
 
 def run_backtest(
-    df: pd.DataFrame,
+    df_h1: pd.DataFrame,
+    df_m1: pd.DataFrame,
     initial_balance: float,
     risk_percent: float,
     tp_ratio: float,
@@ -33,112 +34,157 @@ def run_backtest(
     sl_dist = 0.0
 
     trades_history = []
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    for row in df.itertuples():
 
-        if position == "BUY":
-            both_hit = (row.low <= sl_price) and (row.high >= tp_price)
-            if both_hit:
-                ambiguous_count += 1
+    # Ensure timestamp indexing for fast lookup on M1
+    df_h1['timestamp'] = pd.to_datetime(df_h1['timestamp'])
+    df_m1['timestamp'] = pd.to_datetime(df_m1['timestamp'])
 
-            if row.low <= sl_price:
-                pnl = (sl_price - entry_price) * current_lot * contract_size
-                balance += pnl
-                trades_history.append(
-                    {
-                        "type": "BUY",
-                        "result": "SL",
-                        "pnl": pnl,
-                        "entry": entry_price,
-                        "exit": sl_price,
-                        "balance": balance,
-                    }
-                )
-                position = None
-            elif row.high >= tp_price:
-                pnl = (tp_price - entry_price) * current_lot * contract_size
-                balance += pnl
-                trades_history.append(
-                    {
-                        "type": "BUY",
-                        "result": "TP",
-                        "pnl": pnl,
-                        "entry": entry_price,
-                        "exit": tp_price,
-                        "balance": balance,
-                    }
-                )
-                position = None
+    # Sort and indexed df_m1 for quick slicing
+    df_m1_indexed = df_m1.set_index('timestamp').sort_index()
+    df_h1['timestamp'] = pd.to_datetime(df_h1['timestamp'])
+    df_h1 = df_h1.sort_values('timestamp').reset_index(drop=True)
 
-        elif position == "SELL":
+    for h1_row in df_h1.itertuples():
+        if position is not None:
 
-            both_hit = (row.high + row.spread_usd >= sl_price) and (row.low + row.spread_usd <= tp_price)
-            if both_hit:
-                ambiguous_count += 1
-            
-            if row.high + row.spread_usd>= sl_price:
-                pnl = (entry_price - sl_price) * current_lot * contract_size
-                balance += pnl
-                trades_history.append(
-                    {
-                        "type": "SELL",
-                        "result": "SL",
-                        "pnl": pnl,
-                        "entry": entry_price,
-                        "exit": sl_price,
-                        "balance": balance,
-                    }
-                )
-                position = None
+            h1_start = h1_row.timestamp
+            h1_end = h1_start + pd.Timedelta(hours=1)
+            m1_bars = df_m1_indexed.loc[h1_start : h1_end-pd.Timedelta(minutes=1)]
 
-            elif row.low + row.spread_usd<= tp_price:
-                pnl = (entry_price - tp_price) * current_lot * contract_size
-                balance += pnl
-                trades_history.append(
-                    {
-                        "type": "SELL",
-                        "result": "TP",
-                        "pnl": pnl,
-                        "entry": entry_price,
-                        "exit": tp_price,
-                        "balance": balance,
-                    }
-                )
-                position = None
+            for m1_row in m1_bars.itertuples():
 
-        elif position is None:
+                if position == "BUY":
+                    
+                    # เช็กว่าแท่งนี้แตะทั้ง SL และ TP หรือไม่
+                    hit_sl = m1_row.low <= sl_price
+                    hit_tp = m1_row.high >= tp_price
 
-            if row.entry_signal == 1:
-                lot = calculate_position_size(
-                    account_balance=balance,
-                    risk_percent=risk_percent,
-                    sl_distance=row.sl_distance,
-                    contract_size=contract_size,
-                )
+                    # กรณีชนทั้งคู่ในแท่งเดียว ให้ถือว่าโดน SL ก่อน (Conservative Backtest)
+                    if hit_sl and hit_tp:
+                        hit_tp = False
+                        ambiguous_count+=1
 
-                if lot > 0:
-                    sl_dist = row.sl_distance
-                    entry_price = row.next_open + row.next_spread_usd + (row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR))
-                    sl_price = entry_price - row.sl_distance
-                    tp_price = entry_price + (row.sl_distance * tp_ratio)
-                    current_lot = lot
-                    position = "BUY"
+                    if hit_sl:
+                        pnl = (sl_price - entry_price) * current_lot * contract_size
+                        balance += pnl
+                        trades_history.append(
+                            {
+                                "type": "BUY",
+                                "result": "SL",
+                                "pnl": pnl,
+                                "entry": entry_price,
+                                "exit": sl_price,
+                                "balance": balance,
+                            }
+                        )
+                        position = None
+                        break
+                    elif hit_tp:
+                        pnl = (tp_price - entry_price) * current_lot * contract_size
+                        balance += pnl
+                        trades_history.append(
+                            {
+                                "type": "BUY",
+                                "result": "TP",
+                                "pnl": pnl,
+                                "entry": entry_price,
+                                "exit": tp_price,
+                                "balance": balance,
+                            }
+                        )
+                        position = None
+                        break
 
-            elif row.entry_signal == -1:
-                lot = calculate_position_size(
-                    account_balance=balance,
-                    risk_percent=risk_percent,
-                    sl_distance=row.sl_distance,
-                    contract_size=contract_size,
-                )
+                elif position == "SELL":
+                    
+                    # Ask Price = Bid Price + Spread
+                    ask_high = m1_row.high + m1_row.spread_usd
+                    ask_low = m1_row.low + m1_row.spread_usd
 
-                if lot > 0:
-                    sl_dist = row.sl_distance
-                    entry_price = row.next_open - (row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR))
-                    sl_price = entry_price + row.sl_distance
-                    tp_price = entry_price - (row.sl_distance * tp_ratio)
-                    current_lot = lot
-                    position = "SELL"
+                    # เช็กว่าแท่งนี้แตะทั้ง SL และ TP หรือไม่
+                    hit_sl = ask_high >= sl_price
+                    hit_tp = ask_low <= tp_price
+
+                    # กรณีชนทั้งคู่ในแท่งเดียว ให้ถือว่าโดน SL ก่อน (Conservative Backtest)
+                    if hit_sl and hit_tp:
+                        hit_tp = False
+                        ambiguous_count+=1
+                
+                    if hit_sl:
+                        pnl = (entry_price - sl_price) * current_lot * contract_size
+                        balance += pnl
+                        trades_history.append(
+                            {
+                                "type": "SELL",
+                                "result": "SL",
+                                "pnl": pnl,
+                                "entry": entry_price,
+                                "exit": sl_price,
+                                "balance": balance,
+                            }
+                        )
+                        position = None
+                        break
+
+                    elif hit_tp:
+                        pnl = (entry_price - tp_price) * current_lot * contract_size
+                        balance += pnl
+                        trades_history.append(
+                            {
+                                "type": "SELL",
+                                "result": "TP",
+                                "pnl": pnl,
+                                "entry": entry_price,
+                                "exit": tp_price,
+                                "balance": balance,
+                            }
+                        )
+                        position = None
+                        break
+
+        elif position is None and h1_row.entry_signal != 0:
+
+            next_m1_time = h1_row.timestamp + pd.Timedelta(hours=1)
+
+            if next_m1_time in df_m1_indexed.index:
+                next_m1 = df_m1_indexed.loc[next_m1_time]
+
+                if isinstance(next_m1, pd.DataFrame):
+                    next_m1 = next_m1.iloc[0]
+
+                slippage = h1_row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR)
+
+                if h1_row.entry_signal == 1:
+                    lot = calculate_position_size(
+                        account_balance=balance,
+                        risk_percent=risk_percent,
+                        sl_distance=h1_row.sl_distance,
+                        contract_size=contract_size,
+                    )
+
+                    if lot > 0:
+                        sl_dist = h1_row.sl_distance
+                        entry_price = next_m1['open'] + next_m1['spread_usd'] + slippage
+                        sl_price = entry_price - h1_row.sl_distance
+                        tp_price = entry_price + (h1_row.sl_distance * tp_ratio)
+                        current_lot = lot
+                        position = "BUY"
+
+                elif h1_row.entry_signal == -1:
+                    lot = calculate_position_size(
+                        account_balance=balance,
+                        risk_percent=risk_percent,
+                        sl_distance=h1_row.sl_distance,
+                        contract_size=contract_size,
+                    )
+
+                    if lot > 0:
+                        sl_dist = h1_row.sl_distance
+                        entry_price = next_m1['open'] - slippage
+                        sl_price = entry_price + h1_row.sl_distance
+                        tp_price = entry_price - (h1_row.sl_distance * tp_ratio)
+                        current_lot = lot
+                        position = "SELL"
 
     return {
         "initial_balance": initial_balance,

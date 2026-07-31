@@ -25,7 +25,7 @@ else:
     df = pd.DataFrame(rates)
 
     df['time'] = pd.to_datetime(df['time'], unit='s') + pd.Timedelta(hours=7)
-
+    
     df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume','spread']]
     df.rename(columns={'time': 'timestamp','tick_volume': 'volume'}, inplace = True)
     df['spread_usd'] = df['spread'] * 0.01
