@@ -12,7 +12,7 @@ from src.risk.volatility_calc import calculate_volatility
 
 def main():
 
-    data_path = Path("data/btcusd_h1_3years.csv")
+    data_path = Path("data/btcusd_h1.csv")
     if not data_path.exists():
         print(f"Error: Not found data in path: {data_path}")
         return
@@ -57,13 +57,6 @@ def main():
 
     print("\n--- Breakdown by Result ---")
     print(trades_df.groupby(['type', 'result'])['pnl'].agg(['count', 'sum', 'mean']))
-
-    # print("\n--- First 10 Trades ---")
-    # print(
-    #     trades_df[
-    #         ['type', 'result', 'entry', 'exit', 'pnl', 'balance']
-    #     ].head(30)
-    # )
 
 if __name__ == "__main__":
   main()

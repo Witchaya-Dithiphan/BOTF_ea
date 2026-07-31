@@ -13,10 +13,10 @@ symbol_info = mt5.symbol_info(symbol)
 if not symbol_info.visible:
     mt5.symbol_info(symbol , True)
 
-time_now = datetime.now()
-time_start = time_now - timedelta(days=365*4)
+time_start = datetime(2022, 7, 29, 22, 0)
+time_end   = datetime(2026, 7, 29, 22, 0)
 
-rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, time_start, time_now)
+rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, time_start, time_end)
 mt5.shutdown()
 
 if rates is None or len(rates) == 0:
@@ -32,7 +32,7 @@ else:
 
 
     os.makedirs('data', exist_ok=True)
-    file_path = 'data/btcusd_h1_3years.csv'
+    file_path = 'data/btcusd_h1.csv'
     df.to_csv(file_path, index=False)
 
     print(f"Data fetched and saved to {file_path}")

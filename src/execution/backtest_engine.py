@@ -69,24 +69,13 @@ def run_backtest(
                     }
                 )
                 position = None
-            
-            if position is not None and cfg.USE_TRAILING_STOP:
-                sl_price = trailing_sl(
-                    position_type=position,  # ส่งค่า "SELL" เข้าไป
-                    entry_price=entry_price,
-                    current_sl=sl_price,
-                    current_high=row.high,
-                    current_low=row.low,
-                    initial_sl_distance=sl_dist,
-                    be_trigger_r=cfg.BE_TRIGGER_R
-                )
 
         elif position == "SELL":
 
             both_hit = (row.high + row.spread_usd >= sl_price) and (row.low + row.spread_usd <= tp_price)
             if both_hit:
                 ambiguous_count += 1
-
+            
             if row.high + row.spread_usd>= sl_price:
                 pnl = (entry_price - sl_price) * current_lot * contract_size
                 balance += pnl
@@ -117,21 +106,7 @@ def run_backtest(
                 )
                 position = None
 
-            if position is not None and cfg.USE_TRAILING_STOP:
-                sl_price = trailing_sl(
-                    position_type=position,  # ส่งค่า "SELL" เข้าไป
-                    entry_price=entry_price,
-                    current_sl=sl_price,
-                    current_high=row.high,
-                    current_low=row.low,
-                    initial_sl_distance=sl_dist,
-                    be_trigger_r=cfg.BE_TRIGGER_R
-                )
-
         elif position is None:
-            if cfg.ENABLE_TIME_FILTER:
-                if not is_valid_session(row.timestamp + pd.Timedelta(hours=1), row.next_spread_usd):
-                    continue
 
             if row.entry_signal == 1:
                 lot = calculate_position_size(
