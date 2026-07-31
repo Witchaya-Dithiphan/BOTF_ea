@@ -11,8 +11,6 @@ if str(root_dir) not in sys.path:
 
 import pandas as pd
 from src.risk.position_sizer import calculate_position_size
-from src.signals.session_filter import is_valid_session
-from src.risk.break_even_trailing import trailing_sl
 
 
 def run_backtest(
@@ -31,7 +29,6 @@ def run_backtest(
     tp_price = 0.0
     current_lot = 0.0
     ambiguous_count = 0
-    sl_dist = 0.0
 
     trades_history = []
 
@@ -65,7 +62,8 @@ def run_backtest(
                         ambiguous_count+=1
 
                     if hit_sl:
-                        pnl = (sl_price - entry_price) * current_lot * contract_size
+                        slippage = h1_row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR)
+                        pnl = (sl_price - entry_price - slippage) * current_lot * contract_size
                         balance += pnl
                         trades_history.append(
                             {
@@ -111,7 +109,8 @@ def run_backtest(
                         ambiguous_count+=1
                 
                     if hit_sl:
-                        pnl = (entry_price - sl_price) * current_lot * contract_size
+                        slippage = h1_row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR)
+                        pnl = (entry_price - sl_price + slippage) * current_lot * contract_size
                         balance += pnl
                         trades_history.append(
                             {
@@ -163,7 +162,6 @@ def run_backtest(
                     )
 
                     if lot > 0:
-                        sl_dist = h1_row.sl_distance
                         entry_price = next_m1['open'] + next_m1['spread_usd'] + slippage
                         sl_price = entry_price - h1_row.sl_distance
                         tp_price = entry_price + (h1_row.sl_distance * tp_ratio)
@@ -179,7 +177,6 @@ def run_backtest(
                     )
 
                     if lot > 0:
-                        sl_dist = h1_row.sl_distance
                         entry_price = next_m1['open'] - slippage
                         sl_price = entry_price + h1_row.sl_distance
                         tp_price = entry_price - (h1_row.sl_distance * tp_ratio)
