@@ -219,12 +219,9 @@ def run_backtest(
             "MFE": round(active_trade["MFE"],2),
         })
         trades_history.append(active_trade)
-
+    trades = pd.DataFrame(trades_history)
 
     return {
-        "initial_balance": initial_balance,
-        "final_balance": balance,
-        "total_trades": len(trades_history),
-        "trades": trades_history,
+        "trades": trades,
         "ambiguous_count": ambiguous_count
     }
