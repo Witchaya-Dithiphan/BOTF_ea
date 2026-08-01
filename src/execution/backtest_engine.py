@@ -31,15 +31,12 @@ def run_backtest(
     ambiguous_count = 0
 
     trades_history = []
-
-    # Ensure timestamp indexing for fast lookup on M1
+    
+        
     df_h1['timestamp'] = pd.to_datetime(df_h1['timestamp'])
+
     df_m1['timestamp'] = pd.to_datetime(df_m1['timestamp'])
-
-    # Sort and indexed df_m1 for quick slicing
     df_m1_indexed = df_m1.set_index('timestamp').sort_index()
-    df_h1['timestamp'] = pd.to_datetime(df_h1['timestamp'])
-    df_h1 = df_h1.sort_values('timestamp').reset_index(drop=True)
 
     for h1_row in df_h1.itertuples():
         if position is not None:
@@ -110,7 +107,7 @@ def run_backtest(
                 
                     if hit_sl:
                         slippage = h1_row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR)
-                        pnl = (entry_price - sl_price + slippage) * current_lot * contract_size
+                        pnl = (entry_price - sl_price - slippage) * current_lot * contract_size
                         balance += pnl
                         trades_history.append(
                             {

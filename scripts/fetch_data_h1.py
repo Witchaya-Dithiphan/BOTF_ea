@@ -1,7 +1,14 @@
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from src.risk.volatility_calc import calculate_volatility
+
 import os 
 from datetime import datetime, timedelta
 import MetaTrader5 as mt5
 import pandas as pd
+import config as cfg
 
 if not mt5.initialize():
     print("initialize failed, error code =", mt5.last_error())
@@ -25,11 +32,15 @@ else:
     df = pd.DataFrame(rates)
 
     df['time'] = pd.to_datetime(df['time'], unit='s') + pd.Timedelta(hours=7)
-    
+
     df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume','spread']]
     df.rename(columns={'time': 'timestamp','tick_volume': 'volume'}, inplace = True)
     df['spread_usd'] = df['spread'] * 0.01
-
+    
+    # Ensure timestamp indexing for fast lookup on M1
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df = df.sort_values('timestamp')
+    df = calculate_volatility(df,cfg.ATR_PERIOD,cfg.SL_ATR_MULTIPLIER)
 
     os.makedirs('data', exist_ok=True)
     file_path = 'data/btcusd_h1.csv'

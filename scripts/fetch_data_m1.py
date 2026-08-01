@@ -1,7 +1,14 @@
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from src.risk.volatility_calc import calculate_volatility
+
 import os 
 from datetime import datetime, timedelta
 import MetaTrader5 as mt5
 import pandas as pd
+import config as cfg
 
 if not mt5.initialize():
     print("initialize failed, error code =", mt5.last_error())
@@ -30,6 +37,12 @@ else:
     df.rename(columns={'time': 'timestamp','tick_volume': 'volume'}, inplace = True)
     df['spread_usd'] = df['spread'] * 0.01
 
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    # Sort and indexed df_m1 for quick slicing
+    df = df.sort_values('timestamp')
+    df = calculate_volatility(df,cfg.ATR_PERIOD,cfg.SL_ATR_MULTIPLIER)
+    df = df.dropna().reset_index(drop=True)
+
 
     os.makedirs('data', exist_ok=True)
     file_path = 'data/btcusd_m1.csv'
@@ -38,11 +51,11 @@ else:
     print(f"Data fetched and saved to {file_path}")
 
     # สมมติ df_m1 โหลดข้อมูลมาแล้ว
-df['timestamp'] = pd.to_datetime(df['timestamp']) # ปรับชื่อคอลัมน์ตามจริง
-m1_counts = df.groupby(df['timestamp'].dt.floor('h')).size()
+    df['timestamp'] = pd.to_datetime(df['timestamp']) # ปรับชื่อคอลัมน์ตามจริง
+    m1_counts = df.groupby(df['timestamp'].dt.floor('h')).size()
 
-# กรองดูเฉพาะชั่วโมงที่มีแท่งน้อยกว่า 60
-weird_hours = m1_counts[m1_counts < 60]
+    # กรองดูเฉพาะชั่วโมงที่มีแท่งน้อยกว่า 60
+    weird_hours = m1_counts[m1_counts < 60]
 
-print("Hours with less than 60 M1 bars:")
-print(weird_hours)
+    print("Hours with less than 60 M1 bars:")
+    print(weird_hours)
