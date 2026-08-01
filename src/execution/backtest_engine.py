@@ -107,7 +107,7 @@ def run_backtest(
                 
                     if hit_sl:
                         slippage = h1_row.atr*random.uniform(cfg.SLIPPAGE_MIN_FACTOR,cfg.SLIPPAGE_MAX_FACTOR)
-                        pnl = (entry_price - sl_price + slippage) * current_lot * contract_size
+                        pnl = (entry_price - sl_price - slippage) * current_lot * contract_size
                         balance += pnl
                         trades_history.append(
                             {
