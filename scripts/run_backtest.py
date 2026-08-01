@@ -42,6 +42,11 @@ def main():
     win_rate = ((win_count / total_trades) * 100) if total_trades > 0 else 0.0
     ambiguous_count = result['ambiguous_count']
 
+    trades_df['peak'] = trades_df['balance'].cummax()
+    trades_df['drawdown_usd'] = trades_df['peak'] - trades_df['balance']
+    trades_df['drawdown_pct'] = (trades_df['drawdown_usd'] / trades_df['peak']) * 100
+    
+
     print("\n" + "=" * 40)
     print("BACKTEST SUMMARY REPORT")
     print("=" * 40)
@@ -50,6 +55,8 @@ def main():
     print(f"Net Profit/Loss : ${net_pnl:,.2f} ({return_pct:+.2f}%)")
     print(f"Total Trades    : {total_trades} trades")
     print(f"Win Rate        : {win_rate:.2f}% ({win_count}/{total_trades})")
+    print(f"Peak Balance      : ${trades_df['peak'].max():,.2f}")
+    print(f"Max Drawdown    : ${trades_df['drawdown_usd'].max():,.2f} ({trades_df['drawdown_pct'].max():.2f}%)")
     print(f"Ambiguous_count        : {ambiguous_count}")
     print("=" * 40)
 

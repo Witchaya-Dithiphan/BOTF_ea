@@ -4,7 +4,7 @@
 
 # --- Account Settings ---
 INITIAL_BALANCE = 300.0       # ทุนเริ่มต้น (USD)
-RISK_PERCENT = 0.03          # ความเสี่ยงต่อไม้ (3% = 0.03)
+RISK_PERCENT = 0.03          # ความเสี่ยงต่อไม้ (5% = 0.05)
 CONTRACT_SIZE = 1.0         # ขนาดสัญญา (เช่น 100 สำหรับ XAUUSD Standard Lot)
 
 # --- Strategy Parameters ---
