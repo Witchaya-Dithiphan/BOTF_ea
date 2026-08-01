@@ -197,6 +197,30 @@ def run_backtest(
                         }
                         current_lot = lot
 
+    if position is not None:
+        last_m1 = df_m1_indexed.iloc[-1]
+        exit_price = last_m1['open'] if position == "BUY" else last_m1['open'] - last_m1['spread_usd']
+        pnl = (exit_price - entry_price) * current_lot * contract_size if position == "BUY" \
+            else (entry_price - exit_price) * current_lot * contract_size
+        balance += pnl
+        pnl_percent = (pnl/(balance-pnl) * 100) if balance - pnl > 0 else 0.0
+
+        risk_amount = active_trade["sl_distance"] * current_lot * contract_size
+        r_multiple = (pnl/risk_amount) if risk_amount > 0 else 0.0
+        active_trade.update({
+            "exit_time": last_m1.name, 
+            "exit_price": exit_price,
+            "result": "EOD_CLOSE", 
+            "pnl": pnl,
+            "pnl_percent": round(pnl_percent,4),
+            "r_multiple": round(r_multiple,4),
+            "balance": balance,
+            "MAE": round(active_trade["MAE"],2),
+            "MFE": round(active_trade["MFE"],2),
+        })
+        trades_history.append(active_trade)
+
+
     return {
         "initial_balance": initial_balance,
         "final_balance": balance,
