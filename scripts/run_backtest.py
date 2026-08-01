@@ -7,7 +7,6 @@ import pandas as pd
 import config as cfg
 from src.execution.backtest_engine import run_backtest
 from src.core.strategy_engine import generate_signals  
-from src.risk.volatility_calc import calculate_volatility
 
 
 def main():
@@ -21,7 +20,6 @@ def main():
     df_h1 = pd.read_csv(h1_path)
     df_m1 = pd.read_csv(m1_path)
 
-    df_h1 = calculate_volatility(df_h1,cfg.ATR_PERIOD,cfg.SL_ATR_MULTIPLIER)
     df_h1 = generate_signals(df_h1)
 
     initial_balance = cfg.INITIAL_BALANCE
