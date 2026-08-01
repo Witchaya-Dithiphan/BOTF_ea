@@ -36,4 +36,13 @@ else:
     df.to_csv(file_path, index=False)
 
     print(f"Data fetched and saved to {file_path}")
-    print(df['timestamp'].min())
+
+    # สมมติ df_m1 โหลดข้อมูลมาแล้ว
+df['timestamp'] = pd.to_datetime(df['timestamp']) # ปรับชื่อคอลัมน์ตามจริง
+m1_counts = df.groupby(df['timestamp'].dt.floor('h')).size()
+
+# กรองดูเฉพาะชั่วโมงที่มีแท่งน้อยกว่า 60
+weird_hours = m1_counts[m1_counts < 60]
+
+print("Hours with less than 60 M1 bars:")
+print(weird_hours)
