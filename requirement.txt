@@ -6,3 +6,6 @@ ta
 backtesting
 python-dotenv
 pytest
+matplotlib
+plotext
+plotly
