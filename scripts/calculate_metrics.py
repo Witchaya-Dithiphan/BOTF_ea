@@ -50,8 +50,11 @@ recovery_factor = net_profit / max_drawdown_usd if max_drawdown_usd > 0 else 0
 
 avg_mae = df['MAE'].mean()
 avg_mfe = df['MFE'].mean() 
-profit_efficiency = avg_mfe / abs(avg_mae) 
- 
+profit_efficiency = avg_mfe / abs(avg_mae)
+
+avg_spread_impact = df['spread'].mean()
+df['spread_per_order'] = df['spread'] * df['lot_size'] * cfg.CONTRACT_SIZE
+cost = df['spread_per_order'].sum()
 
 print(f"Initial Balance: {initial_balance}")
 print(f"Final Balance: {final_balance}")
@@ -60,7 +63,7 @@ print(f"Yearly Return: {yearly_return:.2%}")
 print(f"Expectancy (USD): {Expectancy_usd:.2f} USD per trade")
 print(f"Expectancy (R): {Expectancy_r:.4f} R per trade")
 
-print(f"Win Rate: {win_rate:.2%} ({win_trades}/{total_trades})")
+print(f"Win Rate: {win_rate:.2%} ({win_trades}/{total_trades} trades)")
 print(f"Profit Factor: {profit_factor:.4f}")
 print(f"Average Win: {avg_win} ({win_trades}) , Average Loss: {avg_loss} ({loss_trades})")
 print(f"Win/Loss Ratio: {winloss_ratio:.2f}")
@@ -74,3 +77,6 @@ print(f"Recovery factor: {recovery_factor}")
 print(f"Average MAE: {avg_mae}")
 print(f"Average MFE: {avg_mfe}")
 print(f"Profit Efficiency: {profit_efficiency}")
+
+print(f"Average spread: {avg_spread_impact}")
+print(f"Total Cost of Spread: {cost}")
