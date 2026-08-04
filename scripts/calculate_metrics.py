@@ -38,8 +38,15 @@ winloss_ratio = avg_win / avg_loss
 
 df['peak'] = df['balance'].cummax()
 df['drawdown_usd'] = df['peak'] - df['balance']
+max_drawdown_usd = df['drawdown_usd'].max()
 df['drawdown_pct'] = (df['drawdown_usd'] / df['peak'])*100
 max_drawdown = df['drawdown_pct'].max()
+df['is_win'] = df['pnl'] > 0
+streak_groups = (df['is_win'] != df['is_win'].shift()).cumsum()
+streaks = df.groupby(streak_groups)['is_win'].agg(is_win_status='first', streak_length='size')
+max_consecutive_wins = streaks[streaks['is_win_status'] == True]['streak_length'].max()
+max_consecutive_losses = streaks[streaks['is_win_status'] == False]['streak_length'].max()
+recovery_factor = net_profit / max_drawdown_usd if max_drawdown_usd > 0 else 0
  
 
 print(f"Initial Balance: {initial_balance}")
@@ -56,3 +63,6 @@ print(f"Win/Loss Ratio: {winloss_ratio:.2f}")
 print(f"Average R-Multiple: {avg_r:.4f}")
 
 print(f"Max Drawdown: {max_drawdown}")
+print(f"Max consecutive wins: {max_consecutive_wins}")
+print(f"Max consecutive losses: {max_consecutive_losses}")
+print(f"Recovery factor: {recovery_factor}")
