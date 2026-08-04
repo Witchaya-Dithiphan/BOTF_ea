@@ -57,8 +57,21 @@ df['spread_cost'] = df['spread'] * df['lot_size'] * cfg.CONTRACT_SIZE
 avg_spread = df['spread_cost'].mean()
 cost = df['spread_cost'].sum()
 
+# 1. แปลงกำไรขาดทุนแต่ละไม้ให้อยู่ในรูปอัตราผลตอบแทนเทียบกับเงินตั้งต้น
+trade_returns = df['pnl'] / initial_balance
+avg_trade_return = trade_returns.mean()
+std_trade_return = trade_returns.std()
+# 4. เข้าสูตรคำนวณ (ป้องกันกรณีหารด้วย 0)
+trade_sharpe = avg_trade_return / std_trade_return if std_trade_return > 0 else 0
+negative_returns = trade_returns[trade_returns < 0]
+downside_std = negative_returns.std() if not negative_returns.empty else 0
+trade_sortino = avg_trade_return / downside_std if downside_std > 0 else 0
+df['trade_duration'] = (df['exit_time'] - df['entry_time']) 
+avg_trade_duration = df['trade_duration'].dt.total_seconds().mean() / 3600 
+
+
 print(f"Initial Balance: {initial_balance}")
-print(f"Final Balance: {final_balance}")
+print(f"Final Balance: {final_balance:.2f}")
 print(f"Net Profit: {total_return:.2%} , (+ {net_profit:.2f} USD)")
 print(f"Yearly Return: {yearly_return:.2%}")
 print(f"Expectancy (USD): {Expectancy_usd:.2f} USD per trade")
@@ -66,18 +79,22 @@ print(f"Expectancy (R): {Expectancy_r:.4f} R per trade")
 
 print(f"Win Rate: {win_rate:.2%} ({win_trades}/{total_trades} trades)")
 print(f"Profit Factor: {profit_factor:.4f}")
-print(f"Average Win: {avg_win} ({win_trades}) , Average Loss: {avg_loss} ({loss_trades})")
+print(f"Average Win: {avg_win:.2f} ({win_trades}) , Average Loss: {avg_loss:.2f} ({loss_trades})")
 print(f"Win/Loss Ratio: {winloss_ratio:.2f}")
 print(f"Average R-Multiple: {avg_r:.4f}")
 
-print(f"Max Drawdown: {max_drawdown}")
+print(f"Max Drawdown: {max_drawdown:.2f}")
 print(f"Max consecutive wins: {max_consecutive_wins}")
 print(f"Max consecutive losses: {max_consecutive_losses}")
-print(f"Recovery factor: {recovery_factor}")
+print(f"Recovery factor: {recovery_factor:.2f}")
 
-print(f"Average MAE: {avg_mae}")
-print(f"Average MFE: {avg_mfe}")
-print(f"Profit Efficiency: {profit_efficiency}")
+print(f"Average MAE: {avg_mae:.2f}")
+print(f"Average MFE: {avg_mfe:.2f}")
+print(f"Profit Efficiency: {profit_efficiency:.4f}")
 
-print(f"Average spread impact: {avg_spread}")
+print(f"Average spread impact: {avg_spread:.2f}")
 print(f"Total Cost of Spread: {cost}")
+
+print(f"Sharpe Ratio: {trade_sharpe:.4f}")
+print(f"Sortino Ratio: {trade_sortino:.4f}")
+print(f"Average Duration: {avg_trade_duration} hours")
