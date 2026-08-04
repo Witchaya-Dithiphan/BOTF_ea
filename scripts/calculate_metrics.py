@@ -52,9 +52,10 @@ avg_mae = df['MAE'].mean()
 avg_mfe = df['MFE'].mean() 
 profit_efficiency = avg_mfe / abs(avg_mae)
 
-avg_spread_impact = df['spread'].mean()
-df['spread_per_order'] = df['spread'] * df['lot_size'] * cfg.CONTRACT_SIZE
-cost = df['spread_per_order'].sum()
+
+df['spread_cost'] = df['spread'] * df['lot_size'] * cfg.CONTRACT_SIZE
+avg_spread = df['spread_cost'].mean()
+cost = df['spread_cost'].sum()
 
 print(f"Initial Balance: {initial_balance}")
 print(f"Final Balance: {final_balance}")
@@ -78,5 +79,5 @@ print(f"Average MAE: {avg_mae}")
 print(f"Average MFE: {avg_mfe}")
 print(f"Profit Efficiency: {profit_efficiency}")
 
-print(f"Average spread: {avg_spread_impact}")
+print(f"Average spread impact: {avg_spread}")
 print(f"Total Cost of Spread: {cost}")
